@@ -49,6 +49,7 @@ public class Statics {
 		td.setReadOnly(false);
 		int shardServers = client.shardServerList(client.shardClusterList().get(0)).size();
 		td.setShardCount(shardServers*4);
+
 		TableContext context = TableContext.create(td);
 		FieldManager fieldManager = context.getFieldManager();
 		fieldManager.addColumnDefinition(DEFAULT_CONTENT_FAMILY, DEFAULT_CONTENT_FIELD,
