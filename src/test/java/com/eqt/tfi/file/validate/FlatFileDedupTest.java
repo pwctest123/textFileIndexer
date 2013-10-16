@@ -19,8 +19,8 @@ public class FlatFileDedupTest {
 	@Before
 	public void setup() {
 		for(int i=0;i<10;i++) {
-			orig.add(new Path("file://tmp/orig-"+i));
-			files.add(new Path("file://tmp/file-"+i));
+			orig.add(new Path("file:///tmp/orig-"+i));
+			files.add(new Path("file:///tmp/file-"+i));
 		}
 	}
 
