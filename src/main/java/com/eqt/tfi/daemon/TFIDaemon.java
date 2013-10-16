@@ -62,7 +62,7 @@ public class TFIDaemon {
 		int currLoads = 0;
 		// used for landing into the map of futures
 		int currThreadNum = 0;
-		Map<Integer, Future<FileForWork>> tasks = new HashMap<Integer, Future<FileForWork>>();
+		Map<String, Future<FileForWork>> tasks = new HashMap<String, Future<FileForWork>>();
 
 		List<String> files = null;
 		Iterator<String> it = null;
@@ -93,9 +93,10 @@ public class TFIDaemon {
 			}
 
 			// lets kick off a load if we can.
-			if (currFile != null && currLoads < maxNumThreads) {
-				System.out.println("currFile: " + currFile + " assigned task: " + currThreadNum);
+			if (currFile != null && currLoads < maxNumThreads && tasks.get(currFile) == null) {
+				currLoads++;
 				final Path p = new Path(watchDir + currFile);
+				System.out.println("currFile: " + currFile + " at location: " + p.toString() + " assigned task: " + currThreadNum);
 				Callable<FileForWork> worker = new Callable<FileForWork>() {
 
 					@Override
@@ -107,19 +108,21 @@ public class TFIDaemon {
 					}
 				};
 				Future<FileForWork> submit = executor.submit(worker);
-				tasks.put(currThreadNum++, submit);
-				currLoads++;
+				tasks.put(currFile, submit);
 				currFile = null;
+				currThreadNum++;
 			}
 
 			// cleanup futures
-			for(int task : tasks.keySet()) {
+			for(String task : tasks.keySet()) {
 				try {
 					FileForWork work = tasks.get(task).get(1000, TimeUnit.MILLISECONDS);
 					//delete the file from the dir.
 					File f = new File(work.orig.toString());
+					System.out.println("File Complete: " + f.toString());
 					f.delete();
 					currLoads--;
+					tasks.remove(task);
 				} catch (ExecutionException e) {
 					//TODO: figure out how to handle this
 					e.printStackTrace();
@@ -129,6 +132,8 @@ public class TFIDaemon {
 					System.out.println("Task " + task + " still working.");
 				}
 			}
+			
+			System.out.println("Files Loaded: " + currThreadNum + " Concurrent Tasks: " + currLoads + "\n");
 
 		}
 	}

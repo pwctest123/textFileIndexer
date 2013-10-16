@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="0.982" errors="0" skipped="0" tests="3" name="com.eqt.tfi.file.validate.FlatFileDedupTest">
+<testsuite failures="0" time="0.966" errors="0" skipped="0" tests="3" name="com.eqt.tfi.file.validate.FlatFileDedupTest">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-6-oracle/jre/lib/amd64"/>
@@ -57,7 +57,7 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase time="0.889" classname="com.eqt.tfi.file.validate.FlatFileDedupTest" name="TestWriteFile"/>
+  <testcase time="0.875" classname="com.eqt.tfi.file.validate.FlatFileDedupTest" name="TestWriteFile"/>
   <testcase time="0.019" classname="com.eqt.tfi.file.validate.FlatFileDedupTest" name="TestSingletonness"/>
   <testcase time="0.028" classname="com.eqt.tfi.file.validate.FlatFileDedupTest" name="TestWriteSameFile"/>
 </testsuite>
