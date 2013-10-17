@@ -107,8 +107,7 @@ public class TFIDaemon {
 		// TODO: better shutdown than this.
 		while (true) {
 			if (it == null) {
-				File dir = new File(inputPath.toString()); //TODO: make back into FS usage. this locked to local.
-				it = fs.listFiles(inputPath, false);
+				it = inputPath.getFileSystem(new Configuration()).listFiles(inputPath, false);
 			}
 
 			if (currFile == null) {
