@@ -63,7 +63,7 @@ public class TFIDaemon {
 			inputPath = new Path(watch);
 		} else { //if not explicit assumed local
 			localWatch = true;
-			inputPath = fs.makeQualified(new Path(watch));
+			inputPath = localFS.makeQualified(new Path(watch));
 			if(!localFS.exists(inputPath))
 				throw new IOException("cannot find local path: " + watch);
 		}
@@ -77,7 +77,7 @@ public class TFIDaemon {
 			destPath = new Path(dest);
 		} else {
 			localDest = true;
-			destPath = fs.makeQualified(new Path(watch));
+			destPath = localFS.makeQualified(new Path(watch));
 			if(!localFS.exists(destPath))
 				throw new IOException("cannot find destination path: " + dest);
 		}
