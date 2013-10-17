@@ -107,7 +107,7 @@ public class TFIDaemon {
 		// TODO: better shutdown than this.
 		while (true) {
 			if (it == null) {
-				it = inputPath.getFileSystem(new Configuration()).listFiles(inputPath, false);
+				it = inputPath.getFileSystem(fs.getConf()).listFiles(inputPath, false);
 			}
 
 			if (currFile == null) {
@@ -148,7 +148,8 @@ public class TFIDaemon {
 				try {
 					FileForWork work = tasks.get(task).get(1000, TimeUnit.MILLISECONDS);
 					//delete the file from the dir.
-					fs.delete(new Path(task),false);
+					Path del = new Path(task);
+					del.getFileSystem(fs.getConf()).delete(new Path(task),false);
 //					File f = new File(work.orig.toString());
 //					System.out.println("File Complete: " + f.toString());
 //					f.delete();
