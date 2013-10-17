@@ -1,8 +1,6 @@
 package com.eqt.tfi.load;
 
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 
@@ -56,11 +54,7 @@ public class FileLoader {
 	
 	public long load(Path in, boolean localSource, Path prefix, boolean localDest) throws IOException {
 		
-//		if(localSource)
-//			if(!new File(in.toString()).exists())
-//				throw new IOException("file does not exist: " + in);
-//		else 
-			if(!fs.exists(in))
+		if(!in.getFileSystem(fs.getConf()).exists(in))
 			throw new IOException("file does not exist: " + in);
 
 		Path path = gen.generateDestinationPath(prefix, in);
@@ -69,7 +63,7 @@ public class FileLoader {
 		
 		FileContext fx = FileContext.getFileContext(fs.getConf());
 		//make sure parent does exist.
-		fs.mkdirs(path.getParent());
+		path.getFileSystem(fs.getConf()).mkdirs(path.getParent());
 
 		SequenceFile.Writer writer = SequenceFile.createWriter(fx, fs.getConf(), path, Text.class,Text.class,
 					SequenceFile.CompressionType.BLOCK, new DefaultCodec(), new Metadata(), 
@@ -85,7 +79,7 @@ public class FileLoader {
 //			if(localSource)
 //				fis = new DataInputStream(new FileInputStream(new File(in.toString())));
 //			else
-				fis = fs.open(in);
+				fis = in.getFileSystem(fs.getConf()).open(in);
 
 			Text key = new Text(fileName+":0");
 			Text val = new Text();
@@ -120,7 +114,7 @@ public class FileLoader {
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
 
-		FileLoader f = new FileLoader(new DatedHashURI(fs), FlatFileDedupPolicy.getInstance(),fs);
+		FileLoader f = new FileLoader(new DatedHashURI(), FlatFileDedupPolicy.getInstance(),fs);
 		f.load(new Path("/tmp/fark"), true, new Path("file:///tmp"), true);
 	}
 

@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 /**
@@ -15,19 +15,10 @@ import org.apache.hadoop.fs.Path;
  * @author gman
  */
 public class HashURI implements UriGenerator {
-
-	FileSystem fs;
-	
-	/**
-	 * instantiates default hash of SHA512
-	 */
-	public HashURI(FileSystem fs) {
-		this.fs = fs;
-	}
 	
 	public Path generateDestinationPath(Path outPrefix, Path in) throws IOException {
 	
-		if(!fs.isFile(in))
+		if(!in.getFileSystem(new Configuration()).isFile(in))
 			throw new IOException(in.toString() + " is not a file");
 		MessageDigest md = null;
 		try {
@@ -37,7 +28,7 @@ public class HashURI implements UriGenerator {
 		}
 
 		
-		FSDataInputStream fis = fs.open(in);
+		FSDataInputStream fis = in.getFileSystem(new Configuration()).open(in);
 		byte[] dataBytes = new byte[1024];
 		int nread = 0; 
 		

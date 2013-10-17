@@ -131,7 +131,7 @@ public class TFIDaemon {
 
 					@Override
 					public FileForWork call() throws Exception {
-						FileLoader fl = new FileLoader(new DatedHashURI(fs),FlatFileDedupPolicy.getInstance(),fs);
+						FileLoader fl = new FileLoader(new DatedHashURI(),FlatFileDedupPolicy.getInstance(),fs);
 						FileForWork f = new FileForWork(p);
 						f.bytes = fl.load(p, localWatch, destPath,localDest);
 						return f;
