@@ -24,6 +24,7 @@ public class Statics {
 	public static final String INPUT_CONTENT_FOLDER = "tfi.content.input.folder";
 	public static final String INPUT_CONTENT_FOLDER_DEFAULT = TFI_BASE_DIR_DEFAULT_VALUE + "/content";
 	public static final String INPUT_COMBINER_PATH = "tfi.combiner.content.input";
+	public static final String INPUT_COMBINER_OUTPUT_PATH = "tfi.combiner.content.output";
 	public static final String COMBINER_NUM_FILES = "tfi.combinder.num.outputfiles";
 	
 	public static final String DEFAULT_CONTENT_FAMILY = "content";

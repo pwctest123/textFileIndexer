@@ -10,6 +10,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
@@ -53,10 +54,9 @@ public class SequenceFileCombiner {
 		job.setReducerClass(Reducy.class);
 		
 		FileInputFormat.addInputPath(job, new Path(conf.get(Statics.INPUT_COMBINER_PATH)));
-		
+		FileOutputFormat.setOutputPath(job, new Path(conf.get(Statics.INPUT_COMBINER_OUTPUT_PATH)));
 		
 		job.waitForCompletion(true);
-
 
 	}
 
