@@ -17,7 +17,10 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 
 import com.eqt.tfi.file.uri.DatedHashURI;
 import com.eqt.tfi.file.validate.FlatFileDedupPolicy;
@@ -38,22 +41,54 @@ import com.eqt.tfi.load.FileLoader;
  */
 public class TFIDaemon {
 
-	String watchDir;
-	String destPrefix;
+	Path inputPath;
+	final boolean localWatch;
+	Path destPath;
+	final boolean localDest;
+	
+	Configuration conf;
+	final FileSystem fs;
 
 	public TFIDaemon(String watch, String dest) throws IOException, InterruptedException {
+		conf = new Configuration();
+		fs = FileSystem.get(conf);		
+		
+		FileSystem localFS = FileSystem.getLocal(conf);
+		
 		if(!watch.endsWith("/"))
 			watch += "/";
+		//TODO: make more robust, if not hdfs: resolve fully local path to handle ../bla or ~/bla
+		if(watch.startsWith("hdfs:")) {
+			localWatch = false;
+			inputPath = new Path(watch);
+		} else { //if not explicit assumed local
+			localWatch = true;
+			inputPath = fs.makeQualified(new Path(watch));
+			if(!localFS.exists(inputPath))
+				throw new IOException("cannot find local path: " + watch);
+		}
+				
+		
 		if(!dest.endsWith("/"))
 			dest+="/";
-		this.watchDir = watch;
-		this.destPrefix = dest;
+		
+		if(dest.startsWith("hdfs:")) {
+			localDest = false;
+			destPath = new Path(dest);
+		} else {
+			localDest = true;
+			destPath = fs.makeQualified(new Path(watch));
+			if(!localFS.exists(destPath))
+				throw new IOException("cannot find destination path: " + dest);
+		}
+		
+		System.out.println("Watch Path: " + inputPath.toString());
+		System.out.println("Destination Path: " + destPath.toString());
+
 	}
 	
 	public void run() throws IOException, InterruptedException {
 
-		Configuration conf = new Configuration();
-		final FileSystem fs = FileSystem.get(conf);
 
 		// TODO: parameterize threading
 		final int maxNumThreads = 10;
@@ -65,37 +100,33 @@ public class TFIDaemon {
 		Map<String, Future<FileForWork>> tasks = new HashMap<String, Future<FileForWork>>();
 
 		List<String> files = null;
-		Iterator<String> it = null;
+		RemoteIterator<LocatedFileStatus> it = null;
 
-		String currFile = null;
+		Path currFile = null;
 
 		// TODO: better shutdown than this.
 		while (true) {
 			if (it == null) {
-				File dir = new File(watchDir);
-				System.out.println("dir: " + dir.toString());
-				String[] list = dir.list();
-				if(list == null || list.length == 0) {
-					System.out.println("No files to Load, sleeping");
-					// TODO: maybe a back off strategy??
-					Thread.sleep(1000);
-					continue;
-				}
-				files = Arrays.asList(dir.list());
-				it = files.iterator();
+				File dir = new File(inputPath.toString()); //TODO: make back into FS usage. this locked to local.
+				it = fs.listFiles(inputPath, false);
 			}
 
 			if (currFile == null) {
 				if (it.hasNext())
-					currFile = it.next();
-				else
+					currFile = it.next().getPath();
+				else {
+					System.out.println("No files to Load, sleeping");
 					it = null;
+					// TODO: maybe a back off strategy??
+					Thread.sleep(1000);
+					continue;
+				}
 			}
 
 			// lets kick off a load if we can.
 			if (currFile != null && currLoads < maxNumThreads && tasks.get(currFile) == null) {
 				currLoads++;
-				final Path p = new Path(watchDir + currFile);
+				final Path p = currFile;
 				System.out.println("currFile: " + currFile + " at location: " + p.toString() + " assigned task: " + currThreadNum);
 				Callable<FileForWork> worker = new Callable<FileForWork>() {
 
@@ -103,12 +134,12 @@ public class TFIDaemon {
 					public FileForWork call() throws Exception {
 						FileLoader fl = new FileLoader(new DatedHashURI(fs),FlatFileDedupPolicy.getInstance(),fs);
 						FileForWork f = new FileForWork(p);
-						f.bytes = fl.load(p, new Path(destPrefix));
+						f.bytes = fl.load(p, localWatch, destPath,localDest);
 						return f;
 					}
 				};
 				Future<FileForWork> submit = executor.submit(worker);
-				tasks.put(currFile, submit);
+				tasks.put(currFile.toString(), submit);
 				currFile = null;
 				currThreadNum++;
 			}
@@ -118,9 +149,10 @@ public class TFIDaemon {
 				try {
 					FileForWork work = tasks.get(task).get(1000, TimeUnit.MILLISECONDS);
 					//delete the file from the dir.
-					File f = new File(work.orig.toString());
-					System.out.println("File Complete: " + f.toString());
-					f.delete();
+					fs.delete(new Path(task),false);
+//					File f = new File(work.orig.toString());
+//					System.out.println("File Complete: " + f.toString());
+//					f.delete();
 					currLoads--;
 					tasks.remove(task);
 				} catch (ExecutionException e) {

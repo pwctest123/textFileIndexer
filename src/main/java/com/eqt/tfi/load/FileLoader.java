@@ -1,11 +1,13 @@
 package com.eqt.tfi.load;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CreateFlag;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Options.CreateOpts;
@@ -52,15 +54,18 @@ public class FileLoader {
 		this.fs = fs;
 	}
 	
-	public long load(Path in, Path prefix) throws IOException {
-		if(!fs.exists(in)) {
+	public long load(Path in, boolean localSource, Path prefix, boolean localDest) throws IOException {
+		
+//		if(localSource)
+//			if(!new File(in.toString()).exists())
+//				throw new IOException("file does not exist: " + in);
+//		else 
+			if(!fs.exists(in))
 			throw new IOException("file does not exist: " + in);
-		}
+
 		Path path = gen.generateDestinationPath(prefix, in);
 		
-		System.out.println("file: " + in + " out: " + prefix);
-		System.out.println("path: " + path.toString());
-		System.out.println("fileName: " + path.getName());
+		System.out.println((localSource?"local":"remote") + " file: " + in + " sending to: " + path.toString());
 		
 		FileContext fx = FileContext.getFileContext(fs.getConf());
 		//make sure parent does exist.
@@ -70,25 +75,39 @@ public class FileLoader {
 					SequenceFile.CompressionType.BLOCK, new DefaultCodec(), new Metadata(), 
 					EnumSet.of(CreateFlag.CREATE,CreateFlag.APPEND), CreateOpts.blockSize(128*1024*1024));
 
-		FSDataInputStream fis = fs.open(in);
+		DataInputStream fis = null;
+		long pos = 0;
 		byte[] dataBytes = new byte[1024];
 		int nread = 0;
-		long pos = 0;
 		String fileName = path.getName();
-		Text key = new Text(fileName+":0");
-		Text val = new Text();
-		
-        while ((nread = fis.read(dataBytes)) != -1) {
-        	if(nread == -1)
-        		break;
 
-        	key.set(fileName + Statics.KEY_DELIM + pos);
-        	val.set(dataBytes,0,nread);
+		try {
+//			if(localSource)
+//				fis = new DataInputStream(new FileInputStream(new File(in.toString())));
+//			else
+				fis = fs.open(in);
 
-        	pos+=nread;
-        	writer.append(key, val);
-        };
-        writer.close();
+			Text key = new Text(fileName+":0");
+			Text val = new Text();
+			
+	        while ((nread = fis.read(dataBytes)) != -1) {
+	        	if(nread == -1)
+	        		break;
+	
+	        	key.set(fileName + Statics.KEY_DELIM + pos);
+	        	val.set(dataBytes,0,nread);
+	
+	        	pos+=nread;
+	        	writer.append(key, val);
+	        };
+		}catch(IOException e){
+			throw e;
+		} finally {
+			if(fis != null)
+				fis.close();
+			if(writer != null)
+				writer.close();
+		}
         System.out.println("bytes read: " + pos);
         return pos;
 	}
@@ -102,7 +121,7 @@ public class FileLoader {
 		FileSystem fs = FileSystem.get(conf);
 
 		FileLoader f = new FileLoader(new DatedHashURI(fs), FlatFileDedupPolicy.getInstance(),fs);
-		f.load(new Path("/tmp/fark"), new Path("file:///tmp"));
+		f.load(new Path("/tmp/fark"), true, new Path("file:///tmp"), true);
 	}
 
 }
