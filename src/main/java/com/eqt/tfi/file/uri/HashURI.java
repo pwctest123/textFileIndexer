@@ -52,8 +52,7 @@ public class HashURI implements UriGenerator {
     	out.append(Path.SEPARATOR);
     	out.append(hexString);
    
-    	Path p = new Path(out.toString());
-    	p = Path.mergePaths(outPrefix, p);
+    	Path p = new Path(outPrefix.toString() + out.toString());
     	
 		return p;
 	}
