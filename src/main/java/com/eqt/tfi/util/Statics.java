@@ -22,7 +22,7 @@ public class Statics {
 	public static final String TFI_BASE_DIR = "tfi.base.dir";
 	public static final String TFI_BASE_DIR_DEFAULT_VALUE = "/tfi";
 	public static final String TFI_TMP_DIR = "tfi.tmp.dir";
-	public static final String TFI_TMP_DIR_DEFAULT_VALUE = "/tmp/" + TFI_BASE_DIR_DEFAULT_VALUE;
+	public static final String TFI_TMP_DIR_DEFAULT_VALUE = "/tmp" + TFI_BASE_DIR_DEFAULT_VALUE;
 	
 	public static final String INPUT_CONTENT_FOLDER = "tfi.content.input.folder";
 	public static final String INPUT_CONTENT_FOLDER_DEFAULT = TFI_BASE_DIR_DEFAULT_VALUE + "/content";

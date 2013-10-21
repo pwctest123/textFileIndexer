@@ -100,6 +100,8 @@ public class TFIDaemon {
 		RemoteIterator<LocatedFileStatus> it = null;
 
 		Path currFile = null;
+		
+		boolean sleeping = false;
 
 		// TODO: better shutdown than this.
 		while (true) {
@@ -111,13 +113,21 @@ public class TFIDaemon {
 				if (it.hasNext())
 					currFile = it.next().getPath();
 				else {
-					System.out.println("No files to Load, sleeping");
+					if(sleeping)
+						System.out.print(".");
+					else
+						System.out.println("No files to Load, sleeping");
 					it = null;
+					sleeping = true;
 					// TODO: maybe a back off strategy??
 					Thread.sleep(1000);
 					continue;
 				}
 			}
+			
+			//reset sleep counter
+			sleeping = false;
+			System.out.println("");
 
 			// lets kick off a load if we can.
 			if (currFile != null && currLoads < maxNumThreads && tasks.get(currFile) == null) {
