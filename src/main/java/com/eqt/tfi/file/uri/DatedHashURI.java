@@ -12,8 +12,8 @@ import org.joda.time.DateTime;
 /**
  * Calculates the files sha512 hash for a filename.
  * Takes current time and creates foldering with it.
- * ie: outPrefix + /2013/12/28/18/cfcbeabc6b65731c7c1dbac....
- *
+ * ie: outPrefix + /2013/12/28/18/15/cfcbeabc6b65731c7c1dbac....
+ * where the last integer value is the minutes floored to 15 minute intervals (0,15,30,45).
  */
 public class DatedHashURI implements UriGenerator {
 
@@ -54,6 +54,8 @@ public class DatedHashURI implements UriGenerator {
     	out.append(dt.getDayOfMonth());
     	out.append(Path.SEPARATOR);
     	out.append(dt.getHourOfDay());
+    	out.append(Path.SEPARATOR);
+    	out.append( (dt.getMinuteOfHour() /15)*15 + "" );
     	out.append(Path.SEPARATOR);
     	out.append(hexString);
    

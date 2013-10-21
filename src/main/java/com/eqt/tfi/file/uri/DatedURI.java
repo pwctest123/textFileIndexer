@@ -9,7 +9,8 @@ import org.joda.time.DateTime;
 /**
  * Uses the file name as given.
  * Takes current time and creates foldering with it.
- * ie: outPrefix + /2013/12/28/18/origFileName
+ * ie: outPrefix + /2013/12/28/18/15/origFileName
+ * where the last integer value is the minutes floored to 15 minute intervals (0,15,30,45).
  * @author gman
  *
  */
@@ -28,6 +29,8 @@ public class DatedURI implements UriGenerator {
     	out.append(dt.getDayOfMonth());
     	out.append(Path.SEPARATOR);
     	out.append(dt.getHourOfDay());
+    	out.append(Path.SEPARATOR);
+    	out.append( (dt.getMinuteOfHour() /15)*15 + "" );
     	out.append(Path.SEPARATOR);
     	out.append(in.getName());
 
