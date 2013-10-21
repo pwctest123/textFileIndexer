@@ -9,6 +9,7 @@ import org.apache.blur.thirdparty.thrift_0_9_0.TException;
 import org.apache.blur.thrift.generated.BlurException;
 import org.apache.blur.thrift.generated.TableDescriptor;
 import org.apache.blur.thrift.generated.Blur.Iface;
+import org.apache.hadoop.fs.Path;
 
 public class Statics {
 
@@ -20,6 +21,8 @@ public class Statics {
 	
 	public static final String TFI_BASE_DIR = "tfi.base.dir";
 	public static final String TFI_BASE_DIR_DEFAULT_VALUE = "/tfi";
+	public static final String TFI_TMP_DIR = "tfi.tmp.dir";
+	public static final String TFI_TMP_DIR_DEFAULT_VALUE = "/tmp/" + TFI_BASE_DIR_DEFAULT_VALUE;
 	
 	public static final String INPUT_CONTENT_FOLDER = "tfi.content.input.folder";
 	public static final String INPUT_CONTENT_FOLDER_DEFAULT = TFI_BASE_DIR_DEFAULT_VALUE + "/content";
@@ -59,6 +62,23 @@ public class Statics {
 //		td.setTableUri("");
 		
 		return td;
+	}
+
+
+	/**
+	 * Copied from 2.0.5 hadoop-common Path since CDH isnt at 2.0.5 yet.
+	 * took out the windows checks, who uses windows!??
+	 * @param path1
+	 * @param path2
+	 * @return
+	 */
+	public static Path mergePaths(Path path1, Path path2) {
+		String path2Str = path2.toUri().getPath();
+		// Add path components explicitly, because simply concatenating two path
+		// string is not safe, for example:
+		// "/" + "/foo" yields "//foo", which will be parsed as authority in
+		// Path
+		return new Path(path1.toUri().getScheme(), path1.toUri().getAuthority(), path1.toUri().getPath() + path2Str);
 	}
 	
 }

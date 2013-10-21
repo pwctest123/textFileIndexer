@@ -1,11 +1,8 @@
 package com.eqt.tfi.daemon;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -17,14 +14,15 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.util.GenericOptionsParser;
 
 import com.eqt.tfi.file.uri.DatedHashURI;
 import com.eqt.tfi.file.validate.FlatFileDedupPolicy;
 import com.eqt.tfi.load.FileLoader;
+import com.eqt.tfi.util.Statics;
 
 /**
  * Watches a given directory and uploads files to the given destination in a
@@ -77,7 +75,7 @@ public class TFIDaemon {
 			destPath = new Path(dest);
 		} else {
 			localDest = true;
-			destPath = localFS.makeQualified(new Path(watch));
+			destPath = localFS.makeQualified(new Path(dest));
 			if(!localFS.exists(destPath))
 				throw new IOException("cannot find destination path: " + dest);
 		}
@@ -99,7 +97,6 @@ public class TFIDaemon {
 		int currThreadNum = 0;
 		Map<String, Future<FileForWork>> tasks = new HashMap<String, Future<FileForWork>>();
 
-		List<String> files = null;
 		RemoteIterator<LocatedFileStatus> it = null;
 
 		Path currFile = null;
@@ -143,18 +140,19 @@ public class TFIDaemon {
 				currThreadNum++;
 			}
 
+			//TODO: do something so we dont have to check this every single time.
 			// cleanup futures
-			for(String task : tasks.keySet()) {
+			for(Iterator<String> iter = tasks.keySet().iterator();iter.hasNext();) {
+				String task = iter.next();
 				try {
+					@SuppressWarnings("unused")
 					FileForWork work = tasks.get(task).get(1000, TimeUnit.MILLISECONDS);
 					//delete the file from the dir.
 					Path del = new Path(task);
 					del.getFileSystem(fs.getConf()).delete(new Path(task),false);
-//					File f = new File(work.orig.toString());
-//					System.out.println("File Complete: " + f.toString());
-//					f.delete();
+
 					currLoads--;
-					tasks.remove(task);
+					iter.remove();
 				} catch (ExecutionException e) {
 					//TODO: figure out how to handle this
 					e.printStackTrace();
@@ -176,13 +174,29 @@ public class TFIDaemon {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
-		if (args.length != 2) {
-			System.out.println("USAGE: TFIDaemon watchPath destPath ");
+		GenericOptionsParser p = new GenericOptionsParser(args);
+		Configuration conf = p.getConfiguration();
+		String[] remainingArgs = p.getRemainingArgs();
+		
+		if (remainingArgs.length < 1 || "help".equals(remainingArgs[0]) || "-help".equals(remainingArgs[0])) {
+			System.out.println("USAGE: TFIDaemon watchPath [destPath] ");
+			System.out.println("destPath will default to HDFS: " + Statics.TFI_BASE_DIR_DEFAULT_VALUE);
 			System.out.println("IE: TFIDaemon /mnt/logs hdfs://applogs");
 			System.exit(1);
 		}
+		TFIDaemon d = null;
 		
-		TFIDaemon d = new TFIDaemon(args[0], args[1]);
+		System.out.println("Remaining Args:");
+		for(int i=0;i< remainingArgs.length;i++)
+			System.out.println("remainingArg["+i+"]: " +  remainingArgs[i]);
+		
+		//use default HDFS dir.
+		if(remainingArgs.length == 1) {
+			Path qualified = FileSystem.get(conf).makeQualified(new Path(Statics.TFI_TMP_DIR_DEFAULT_VALUE));
+			d = new TFIDaemon(remainingArgs[0], qualified.toString());
+		} else
+			d = new TFIDaemon(remainingArgs[0], remainingArgs[1]);
+		
 		d.run();
 
 	}

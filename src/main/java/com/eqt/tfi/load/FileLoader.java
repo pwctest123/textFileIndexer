@@ -31,8 +31,8 @@ import com.eqt.tfi.util.Statics;
  * The URIGenerator is always run to return the potentially new uri/filename, which is then
  * passed to the FileValidator to see if file should be uploaded.
  * 
- * TODO: make file upload format pluggable
- * TODO: make the class wrappable for handling say zips of text files.
+ * TODO: make file upload format pluggable, maybe make this an interface.
+ * TODO: make the class wrappable for handling different data dump formats, right now assumes txt files.
  * @author gman
  *
  */
@@ -56,16 +56,26 @@ public class FileLoader {
 		
 		if(!in.getFileSystem(fs.getConf()).exists(in))
 			throw new IOException("file does not exist: " + in);
-
-		Path path = gen.generateDestinationPath(prefix, in);
 		
-		System.out.println((localSource?"local":"remote") + " file: " + in + " sending to: " + path.toString());
+		Path finalPath = gen.generateDestinationPath(prefix, in);
+		//make a tmp file upload spot in the tmp dir with the correct filename.
+		Path uploadPath = new Path(fs.getConf().get(Statics.TFI_TMP_DIR, Statics.TFI_TMP_DIR_DEFAULT_VALUE)+
+				"/" + finalPath.getName());
+
+		if(!policy.uploadFile(in, finalPath, fs)) {
+			System.out.println("File is a duplicate, not uploading.");
+			return -1;
+		}
+		
+		System.out.println((localSource?"local":"remote") + " file: " + in + " sending to: " + uploadPath.toString());
 		
 		FileContext fx = FileContext.getFileContext(fs.getConf());
-		//make sure parent does exist.
-		path.getFileSystem(fs.getConf()).mkdirs(path.getParent());
+		
+		//make sure parent directories do exist.
+		finalPath.getFileSystem(fs.getConf()).mkdirs(uploadPath.getParent());
+		finalPath.getFileSystem(fs.getConf()).mkdirs(finalPath.getParent());
 
-		SequenceFile.Writer writer = SequenceFile.createWriter(fx, fs.getConf(), path, Text.class,Text.class,
+		SequenceFile.Writer writer = SequenceFile.createWriter(fx, fs.getConf(), uploadPath, Text.class,Text.class,
 					SequenceFile.CompressionType.BLOCK, new DefaultCodec(), new Metadata(), 
 					EnumSet.of(CreateFlag.CREATE,CreateFlag.APPEND), CreateOpts.blockSize(128*1024*1024));
 
@@ -73,13 +83,10 @@ public class FileLoader {
 		long pos = 0;
 		byte[] dataBytes = new byte[1024];
 		int nread = 0;
-		String fileName = path.getName();
+		String fileName = finalPath.getName();
 
 		try {
-//			if(localSource)
-//				fis = new DataInputStream(new FileInputStream(new File(in.toString())));
-//			else
-				fis = in.getFileSystem(fs.getConf()).open(in);
+			fis = in.getFileSystem(fs.getConf()).open(in);
 
 			Text key = new Text(fileName+":0");
 			Text val = new Text();
@@ -102,6 +109,8 @@ public class FileLoader {
 			if(writer != null)
 				writer.close();
 		}
+        fs.rename(uploadPath,finalPath);
+        System.out.println("Moved file from: " + uploadPath.toString() + " to " + finalPath.toString());
         System.out.println("bytes read: " + pos);
         return pos;
 	}
