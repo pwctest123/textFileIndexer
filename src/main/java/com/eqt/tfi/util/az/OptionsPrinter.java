@@ -1,8 +1,11 @@
 package com.eqt.tfi.util.az;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 /**
@@ -26,10 +29,11 @@ public class OptionsPrinter {
 		}
 
 		GenericOptionsParser p = new GenericOptionsParser(args);
-//		Configuration conf = p.getConfiguration();
+		Configuration conf = p.getConfiguration();
 		
 		if(p.getRemainingArgs() != null) {
 			System.out.println();
+			System.out.println("#########################################################");
 			System.out.println("args not picked up by a hadoop conf:");
 			for(String arg : p.getRemainingArgs())
 				System.out.println(arg);
@@ -37,10 +41,19 @@ public class OptionsPrinter {
 		
 		Map<String, String> getenv = System.getenv();
 		System.out.println();
+		System.out.println("#########################################################");
 		System.out.println("Current system enviroment variables:");
 		for(String key : getenv.keySet())
 			System.out.println(key + "="+getenv.get(key));
 
+		System.out.println();
+		System.out.println("#########################################################");
+		System.out.println("Hadoop Configuration:");
+		for(Iterator<Entry<String, String>> it = conf.iterator();it.hasNext();) {
+			Entry<String, String> next = it.next();
+			System.out.println(next.getKey() + ": " + next.getValue());
+		}
+		
 	}
 
 }
