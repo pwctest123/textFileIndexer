@@ -30,7 +30,8 @@ public class SequenceFileCombiner {
 	public static class Reducy extends Reducer<Text, Text, Text, Text> {}
 	
 	/**
-	 * @param args
+	 * @param args expects inputPath and outputPath from the command line. [default behavior]
+	 * Can also pass in jvm args for in and out as well.
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 * @throws ClassNotFoundException 
@@ -53,8 +54,20 @@ public class SequenceFileCombiner {
 		job.setMapperClass(Mappy.class);
 		job.setReducerClass(Reducy.class);
 		
-		FileInputFormat.addInputPath(job, new Path(conf.get(Statics.INPUT_COMBINER_PATH)));
-		FileOutputFormat.setOutputPath(job, new Path(conf.get(Statics.INPUT_COMBINER_OUTPUT_PATH)));
+		Path in = null;
+		Path out = null;
+		
+		String[] remainingArgs = p.getRemainingArgs();
+		if(remainingArgs.length <= 2) {
+			in = new Path(remainingArgs[0]);
+			out = new Path(remainingArgs[1]);
+		} else {
+			in = new Path(System.getProperty(Statics.INPUT_COMBINER_PATH));
+			out = new Path(System.getProperty(Statics.INPUT_COMBINER_OUTPUT_PATH));
+		}
+		
+		FileInputFormat.addInputPath(job, in);
+		FileOutputFormat.setOutputPath(job, out);
 		
 		job.waitForCompletion(true);
 
