@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.GenericOptionsParser;
@@ -43,16 +44,26 @@ public class OptionsPrinter {
 		System.out.println();
 		System.out.println("#########################################################");
 		System.out.println("Current system enviroment variables:");
+		Map<String, String> e = new TreeMap<String, String>();
+		
 		for(String key : getenv.keySet())
-			System.out.println(key + "="+getenv.get(key));
+			e.put(key,getenv.get(key));
+		
+		for(String k : e.keySet())
+			System.out.println(k + ": " + e.get(k));
 
 		System.out.println();
 		System.out.println("#########################################################");
 		System.out.println("Hadoop Configuration:");
+		e = new TreeMap<String, String>();
+		//am sorting so this is easier to read
 		for(Iterator<Entry<String, String>> it = conf.iterator();it.hasNext();) {
 			Entry<String, String> next = it.next();
-			System.out.println(next.getKey() + ": " + next.getValue());
+			e.put(next.getKey(), next.getValue());
 		}
+		
+		for(String k : e.keySet())
+			System.out.println(k + ": " + e.get(k));
 		
 	}
 
