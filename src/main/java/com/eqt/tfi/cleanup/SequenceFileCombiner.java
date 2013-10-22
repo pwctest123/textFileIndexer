@@ -58,7 +58,7 @@ public class SequenceFileCombiner {
 		Path out = null;
 		
 		String[] remainingArgs = p.getRemainingArgs();
-		if(remainingArgs.length <= 2) {
+		if(remainingArgs.length >= 2) {
 			in = new Path(remainingArgs[0]);
 			out = new Path(remainingArgs[1]);
 		} else {
