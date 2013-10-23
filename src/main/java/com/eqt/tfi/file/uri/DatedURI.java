@@ -30,7 +30,7 @@ public class DatedURI implements UriGenerator {
     	out.append(Path.SEPARATOR);
     	out.append(pad(dt.getHourOfDay()+""));
     	out.append(Path.SEPARATOR);
-    	out.append( pad((dt.getMinuteOfHour() /15)*15 + "") );
+    	out.append( (dt.getMinuteOfHour() /15)*15 );
     	out.append(Path.SEPARATOR);
     	out.append(in.getName());
 

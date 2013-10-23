@@ -61,9 +61,13 @@ public class SequenceFileCombiner {
 		if(remainingArgs.length >= 2) {
 			in = new Path(remainingArgs[0]);
 			out = new Path(remainingArgs[1]);
+			if(remainingArgs.length == 3)
+				job.setNumReduceTasks(Integer.parseInt(remainingArgs[2]));
 		} else {
 			in = new Path(System.getProperty(Statics.INPUT_COMBINER_PATH));
 			out = new Path(System.getProperty(Statics.INPUT_COMBINER_OUTPUT_PATH));
+			if(System.getProperty(Statics.COMBINER_NUM_FILES) != null)
+				job.setNumReduceTasks(Integer.parseInt(System.getProperty(Statics.COMBINER_NUM_FILES)));
 		}
 		
 		FileInputFormat.addInputPath(job, in);
