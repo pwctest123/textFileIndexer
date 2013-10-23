@@ -49,13 +49,13 @@ public class DatedHashURI implements UriGenerator {
     	out.append(Path.SEPARATOR);
     	out.append(dt.getYear());
     	out.append(Path.SEPARATOR);
-    	out.append(dt.getMonthOfYear());
+    	out.append(pad(dt.getMonthOfYear()+""));
     	out.append(Path.SEPARATOR);
-    	out.append(dt.getDayOfMonth());
+    	out.append(pad(dt.getDayOfMonth()+""));
     	out.append(Path.SEPARATOR);
-    	out.append(dt.getHourOfDay());
+    	out.append(pad(dt.getHourOfDay()+""));
     	out.append(Path.SEPARATOR);
-    	out.append( (dt.getMinuteOfHour() /15)*15 + "" );
+    	out.append( pad((dt.getMinuteOfHour() /15)*15 + "") );
     	out.append(Path.SEPARATOR);
     	out.append(hexString);
    
@@ -63,5 +63,10 @@ public class DatedHashURI implements UriGenerator {
 		return p;
 	}
 
+	private String pad(String str) {
+		if(str.length() < 2)
+			return "0"+str;
+		return str;
+	}
 
 }
