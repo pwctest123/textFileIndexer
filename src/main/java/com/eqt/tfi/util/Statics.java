@@ -30,6 +30,9 @@ public class Statics {
 	public static final String INPUT_COMBINER_OUTPUT_PATH = "tfi.combiner.content.output";
 	public static final String COMBINER_NUM_FILES = "tfi.combinder.num.outputfiles";
 	
+	public static final String RECORD_OFFSET_INPUT_PATH = "tfi.record.offset.input";
+	public static final String RECORD_OFFSET_OUTPUT_PATH = "tfi.record.offset.output";
+	
 	public static final String DEFAULT_CONTENT_FAMILY = "content";
 	public static final String DEFAULT_CONTENT_FIELD = "data";
 	public static final String DEFAULT_METADATA_FAMILY = "meta";
