@@ -115,6 +115,7 @@ public class TextFileIndexer {
 		
 		Path inputPath = new Path(otherArgs[0]);
 		job.setInputFormatClass(TextInputFormat.class);
+		job.setMapperClass(TextMapper.class);
 		FileInputFormat.addInputPath(job, inputPath);
 		
 		//This handles the reducer setting, output types, output path normal in a MR job.
