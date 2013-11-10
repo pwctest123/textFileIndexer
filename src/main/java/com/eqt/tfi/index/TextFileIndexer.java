@@ -77,13 +77,14 @@ public class TextFileIndexer {
 		
 		//grab a handle to talk to blur, assuming single local instance.
 		Iface client = BlurClient.getClient("localhost:40010");
-		//the tablename we will mess with
+		//the table we will mess with
 		String tableName = "textExampleTable";
 		//ask blur about the table
-		TableDescriptor td = client.describe(tableName);
+		
+		TableDescriptor td = null;
 		
 		//if blur says 'what table?'
-		if(td == null) {
+		if(!client.tableList().contains(tableName)) { 
 			//lets make a table.
 			td = new TableDescriptor();
 			td.enabled = true;	//so we can use it
@@ -104,6 +105,8 @@ public class TextFileIndexer {
 			client.addColumnDefinition(tableName,
 				//this says, family:content, column:data, no sub index, no full text, "text" indexer, no extra props 
 				new ColumnDefinition("content", "data", null, false, "text", null));
+		} else {
+			td = client.describe(tableName);
 		}
 		
 		Job job = Job.getInstance(conf, "Index Text Data");
