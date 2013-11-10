@@ -105,9 +105,9 @@ public class TextFileIndexer {
 			client.addColumnDefinition(tableName,
 				//this says, family:content, column:data, no sub index, no full text, "text" indexer, no extra props 
 				new ColumnDefinition("content", "data", null, false, "text", null));
-		} else {
-			td = client.describe(tableName);
 		}
+		//well, exist or create, we grab the copy blur knows about.
+		td = client.describe(tableName);
 		
 		Job job = Job.getInstance(conf, "Index Text Data");
 		job.setJarByClass(TextFileIndexer.class);
