@@ -40,6 +40,7 @@ public class SequenceFileIndexer {
 		    record.setRowId(keys[0]);
 		    record.setRecordId(keys[1]);
 		    record.setFamily(Statics.DEFAULT_CONTENT_FAMILY);
+		    record.addColumn(Statics.DEFAULT_CONTENT_FIELD, value.toString());
 		    _key.set(record.getRowId());
 		    _mutate.setMutateType(MUTATE_TYPE.REPLACE);
 		    context.write(_key, _mutate);
