@@ -14,6 +14,7 @@ import org.apache.blur.thrift.generated.TableDescriptor;
 import org.apache.blur.thrift.generated.Blur.Iface;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -31,10 +32,10 @@ public class TextFileIndexer {
 	 * This mapper will get a single file, so recordID will be line position.
 	 * rowid will be random gibberish since this is an example after all!
 	 */
-	public static class TextMapper extends BaseBlurMapper<Text, Text> {
+	public static class TextMapper extends BaseBlurMapper<LongWritable, Text> {
 
 		@Override
-		protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			//grab a handle on the reusable blur record writable
 			BlurRecord record = _mutate.getRecord();
 			//clean it out
